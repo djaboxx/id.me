@@ -1,0 +1,18 @@
+Part 2: Incident Response & Prioritization 
+Estimated 15 minutes 
+You're on-call and receive the following four (4) alerts between 06:00-07:00 AM (local). 
+Alert A 
+Your container vulnerability scanner reports that 8 production GKE pods are running images with Log4Shell (CVE-2021-44228) vulnerability. The affected service is your internal admin dashboard (requires VPN + authentication, used by 50 employees). Last exploited in the wild: 18 hours ago according to threat intel. 
+Alert B 
+GitHub Advanced Security alerts that a developer committed AWS access keys to a public repository 2 hours ago. The keys belong to an IAM user with `AdministratorAccess` policy on your AWS account that hosts a legacy monitoring service (non-customer facing). The commit has 15 stars and 3 forks already. 
+Alert C 
+Your CSPM tool reports that GKE Workload Identity is disabled on your production cluster `prod-us-west1`, and 12 pods are using downloaded service account JSON keys mounted as secrets. The cluster runs your customer-facing verification API handling 50K requests/minute. 
+Alert D 
+A security researcher emails you that your production Snowflake instance is exposing an unauthenticated API endpoint at `https://api.company.com/snowflake-proxy` that allows SQL query execution. They've included a proof-of-concept showing they can read table names. Your customer PII is stored in Snowflake. 
+Your Task 
+Rank each of them by priority (1=highest) along with your reasoning. 
+Example Response 
+Priority Ranking: 
+1. [Finding _] - Why? (Include: likelihood of exploitation, blast radius, data sensitivity) 2. [Finding _] - Why? 
+3. [Finding _] - Why? 
+4. [Finding _] - Why?

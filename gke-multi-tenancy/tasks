@@ -1,0 +1,31 @@
+Part 3: GKE Multi-Tenancy Security Design 
+Estimated 15 minutes 
+Scenario 
+Your company needs to support multiple development teams deploying to a shared GKE cluster while maintaining strong isolation. Requirements: 
+● Five (5) teams (team-alpha, team-beta, team-gamma, team-delta, team-epsilon) ● Each team has different GCP resource access needs 
+● Teams should NOT be able to see/access other teams' workloads 
+● Each team needs their own Cloud SQL instance, Cloud Storage buckets, and Secret Manager secrets 
+● Platform team needs cluster-wide visibility and management 
+● Must pass SOC 2 audit requirements for tenant isolation 
+Current Cluster State: 
+● GKE cluster: `shared-prod-cluster` (GKE Standard, not Autopilot) 
+● All teams currently deploying to `default` namespace 
+● All pods running with cluster's default service account 
+● No network policies configured 
+● No resource quotas set 
+Your Tasks 
+1. Design the namespace and RBAC strategy: 
+● How many namespaces? What naming convention? 
+● What Kubernetes RBAC roles for each team? 
+● What GCP IAM roles for each team's service accounts? 
+● How do you prevent namespace-level privilege escalation? 
+2. Write Kubernetes YAML configurations for team-alpha including: ● Namespace with proper labels/annotations 
+● ServiceAccount with Workload Identity binding 
+● Role and RoleBinding for team developers 
+● ResourceQuota (CPU, memory, pods) 
+● NetworkPolicy for team isolation 
+● PodSecurityStandard enforcement 
+3. Write the gcloud commands to: 
+● Create GCP service account for team-alpha 
+● Bind GCP service account to Kubernetes service account (Workload Identity) ● Grant team-alpha's GCP SA access to only their Cloud SQL instance ● Configure Binary Authorization policy for team-alpha's namespace 
+4. Describe three (3) ways a malicious insider could break out of this isolation? How would you defend against each?

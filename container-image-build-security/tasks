@@ -1,0 +1,44 @@
+Part 4: Container Image Build Security 
+Estimated 10 minutes 
+Scenario 
+A developer on your team wants to containerize a new Python service. They've written the Dockerfile below. This service will: 
+● Process customer SSN and financial data 
+● Run in production GKE 
+● Need to access Cloud Storage and Cloud SQL 
+● Be called by other internal services 
+Developer's Dockerfile: 
+None 
+```dockerfile 
+FROM ubuntu:latest 
+RUN apt-get update && apt-get install -y python3 python3-pip curl git WORKDIR /app 
+COPY requirements.txt . 
+RUN pip3 install -r requirements.txt 
+COPY . . 
+RUN chmod +x /app/start.sh 
+USER root 
+EXPOSE 8080 
+CMD ["/app/start.sh"] 
+```
+requirements.txt: 
+None 
+``` 
+flask==2.0.1 
+requests 
+psycopg2-binary 
+google-cloud-storage 
+pyyaml 
+``` 
+Your Tasks 
+1. Identify 4 specific security issues with this Dockerfile and requirements.txt 2. Rewrite the Dockerfile using security best practices 
+3. Design a secure CI/CD pipeline for this container including: 
+● Build process (GitHub Actions) 
+● Where/when to scan for vulnerabilities (name specific tools) 
+● How to enforce only signed images can deploy to GKE (specific GCP services) ● SBOM generation and storage strategy 
+● How to prevent deployment if critical CVEs found 
+4. Write a Binary Authorization policy (YAML format) that enforces: - Images must be from your Artifact Registry 
+- Images must be signed by your CI/CD pipeline 
+- Images cannot have critical or high vulnerabilities 
+- Exception process for emergency deployments 
+5. Vulnerability Management Process: A critical CVE is discovered in `flask==2.0.1` three months after deployment. Walk through your response process step-by-step. ● What automated systems should have alerted you? 
+● How do you identify all affected running containers? 
+● What's your SLA for patching and redeployment?

@@ -1,0 +1,15 @@
+Python Programming Technical Assessment 
+Instructions 
+● Complete all sections below 
+● Provide working code or detailed pseudocode 
+● Explain your reasoning and trade-offs 
+● Focus on production-quality code (error handling, edge cases, performance) ● You may use online documentation but should write code yourself ● Your approach and explanation matter as much as the solution 
+Submission Instructions 
+● Save your work as a single document (PDF, DOC, MD, or plain text) ● Include all code, explanations, and answers 
+● Submit all exercises within 120 minutes of IDme transmission 
+● Code doesn't need to be perfectly runnable, but should demonstrate understanding ● We value clear explanations and reasoning 
+Evaluation Criteria 
+You will be evaluated on: 
+● Code Quality: Pythonic code, type hints, error handling, etc. 
+● Problem Solving: Ability to identify root causes and design solutions ● Python Expertise: Understanding of threading, async, memory management ● Production Mindset: Considering scalability, reliability, observability ● Communication: Ability to explain technical decisions clearly 
+● Experience: Evidence of real-world Python problem solving
