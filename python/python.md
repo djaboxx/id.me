@@ -1000,3 +1000,79 @@ deployment restarted it.
 The entire debugging process took 3 days. The one-line fix (adding
 `self.buffer = self.buffer[-5000:]` in the error handler) deployed in 5
 minutes.
+
+---
+
+### 3.4 Potential Issues and Risks of Dropping Records
+
+The short-term fix of dropping the oldest 50% of buffered log records solves
+the OOM problem but introduces several non-obvious risks worth calling out
+explicitly.
+
+**1. Observability Gaps During the Worst Moments**
+
+Logs get dropped precisely when the system is under stress — high transaction
+volume and a failing Elasticsearch. This means the records most likely to
+contain evidence of a production incident (errors, retries, unusual latency)
+are the ones being discarded. You lose visibility exactly when you need it
+most, potentially making the incident that *caused* the Elasticsearch failure
+invisible in hindsight.
+
+**2. Thread Safety / Race Condition**
+
+The one-line fix (`self.buffer = self.buffer[-5000:]`) is not atomic.
+In a multithreaded Celery worker, another thread can append to `self.buffer`
+between the slice read and the reassignment. That record is silently
+overwritten and lost. The fix requires a `threading.Lock` around all buffer
+reads and writes to be safe:
+
+```python
+with self._lock:
+    if len(self.buffer) > self.max_size:
+        self.buffer = self.buffer[len(self.buffer) // 2:]
+```
+
+**3. Compliance and Audit Risk**
+
+This is a **financial transaction reconciliation** service. Depending on
+applicable regulations (SOX, PCI-DSS, FINRA, etc.), operational logs tied to
+financial transactions may need to be retained in their entirety. Silently
+dropping records — even if they are "only" logging metadata — could constitute
+a compliance violation or obstruct a future audit. The compliance team should
+be consulted before this pattern is accepted as a permanent approach.
+
+**4. Masking the Root Cause**
+
+The drop-on-overflow behavior makes the service stable enough that urgency to
+fix the underlying Elasticsearch reliability issue can diminish. The system
+"works," alerts quiet down, and the backlog to do the proper fix grows. This
+is a common pattern where a defensive measure suppresses the feedback signal
+that would drive a real architectural fix. The long-term fix (filebeat sidecar)
+in step 4 is the right answer; the buffer drop is a dangerous crutch if it
+delays that work.
+
+**5. Unbounded Loss During Extended Outages**
+
+The 50% drop heuristic is calibrated for brief Elasticsearch hiccups. Under a
+sustained outage (hours), the buffer fills, drops 50%, refills, drops again —
+repeatedly. Over a multi-hour incident, the total fraction of log records
+actually retained could be well under 10%, far worse than the "we dropped
+some old records" mental model implies.
+
+**6. Severed Causality Chains**
+
+Log records often form cause-and-effect sequences: `transaction started →
+external call made → error returned → retry attempted → reconciliation failed`.
+Dropping the oldest records can remove the *beginning* of such a chain while
+retaining the end, making it impossible to reconstruct what actually happened
+during an incident. A truncated chain can be more misleading than no logs
+at all.
+
+**7. Dropped-Record Metric May Itself Be Lost**
+
+The Prometheus gauge for dropped records is useful, but if it is emitted
+through the same buffered logging path that is being dropped, the metric
+reporting the loss may itself be dropped. This creates a blind spot: the
+system appears to be losing fewer records than it actually is, eroding trust
+in the observability layer. The dropped-record counter should be written to a
+separate, lower-risk channel (stdout / stderr) to remain reliable.
